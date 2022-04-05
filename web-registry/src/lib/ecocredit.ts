@@ -8,6 +8,12 @@ import {
   QueryBalanceResponse,
 } from '@regen-network/api/lib/generated/cosmos/bank/v1beta1/query';
 
+import {
+  QueryClientImpl as BasketQueryClient,
+  QueryBasketResponse,
+  QueryBasketsResponse,
+} from '@regen-network/api/lib/generated/regen/ecocredit/basket/v1/query';
+
 import { expLedger, ledgerRESTUri } from '../lib/ledger';
 import type { PageResponse } from '../types/ledger/base';
 import type {
@@ -19,7 +25,7 @@ import type {
   QueryBalanceResponse as QueryBalanceResponseV0,
   QueryClassesResponse,
   QueryBasketBalancesResponse,
-  QueryBasketResponse,
+  QueryBasketResponse as QueryBasketResponseV0,
   BatchInfoWithBalance,
   QueryBatchesResponse,
   QueryClassInfoResponse,
@@ -299,7 +305,7 @@ export const getTxsByEvent = (msgType: string): Promise<AxiosResponse> => {
 
 export async function getBasket(
   basketDenom: string,
-): Promise<QueryBasketResponse> {
+): Promise<QueryBasketResponseV0> {
   return Promise.resolve({
     basket: {
       id: 'basket-1',
@@ -356,6 +362,38 @@ export const queryEcoClassInfo = async (
 /**
  * NEW ledger queries using RegenAPI
  */
+
+export type QueryBasketProps = {
+  client: BasketQueryClient;
+  basketDenom: string;
+};
+
+export const queryBasket = async ({
+  client,
+  basketDenom,
+}: QueryBasketProps): Promise<QueryBasketResponse | undefined> => {
+  try {
+    return await client.Basket({ basketDenom });
+  } catch (err) {
+    console.error(err); // eslint-disable-line no-console
+  }
+  return;
+};
+
+export type QueryBasketsProps = {
+  client: BasketQueryClient;
+};
+
+export const queryBaskets = async ({
+  client,
+}: QueryBasketsProps): Promise<QueryBasketsResponse | undefined> => {
+  try {
+    return await client.Baskets({});
+  } catch (err) {
+    console.error(err); // eslint-disable-line no-console
+  }
+  return;
+};
 
 export type FetchDenomMetadataProps = {
   client: BankQueryClient;

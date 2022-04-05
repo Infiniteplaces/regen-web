@@ -1,5 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { RegenApi } from '@regen-network/api';
+import { QueryClientImpl as BankQueryClient } from '@regen-network/api/lib/generated/cosmos/bank/v1beta1/query';
+import { QueryClientImpl as EcocreditQueryClient } from '@regen-network/api/lib/generated/regen/ecocredit/v1alpha1/query';
+import { QueryClientImpl as BasketQueryClient } from '@regen-network/api/lib/generated/regen/ecocredit/basket/v1/query';
 
 import { ledgerRPCUri, ledgerExpRPCUri, expLedger } from './lib/ledger';
 
@@ -7,6 +10,7 @@ interface ContextValue {
   loading: boolean;
   api: RegenApi | undefined;
   error: unknown;
+  queryClients?: QueryClients;
 }
 
 interface ConnectParams {
@@ -71,11 +75,19 @@ export const LedgerProvider: React.FC = ({ children }) => {
   );
 };
 
+type QueryClients = {
+  bank?: BankQueryClient;
+  ecocredit?: EcocreditQueryClient;
+  basket?: BasketQueryClient;
+};
+
 export const useLedger = (options?: ConnectParams): ContextValue => {
   const [expApi, setExpApi] = useState<RegenApi | undefined>(undefined);
   const [expLoading, setExpLoading] = useState<boolean>(false);
   const [expError, setExpError] = useState<unknown>(undefined);
   const context = React.useContext(LedgerContext);
+
+  const [queryClients, setQueryClients] = useState<QueryClients>();
 
   const forceExp =
     !expLedger && // No need to get exp ledger api if it's already used as the primary one
@@ -95,9 +107,20 @@ export const useLedger = (options?: ConnectParams): ContextValue => {
     forceExp,
   ]);
 
+  useEffect(() => {
+    if (!context.api?.queryClient) return;
+
+    setQueryClients({
+      bank: new BankQueryClient(context.api.queryClient),
+      ecocredit: new EcocreditQueryClient(context.api.queryClient),
+      basket: new BasketQueryClient(context.api.queryClient),
+    });
+  }, [context.api?.queryClient, queryClients]);
+
   return {
     api: forceExp ? expApi : context.api,
     loading: forceExp ? expLoading : context.loading,
     error: forceExp ? expError : context.error,
+    queryClients,
   };
 };

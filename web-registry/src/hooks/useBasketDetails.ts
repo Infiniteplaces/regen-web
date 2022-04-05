@@ -10,6 +10,8 @@ import useQueryListClassInfo from './useQueryListClassInfo';
 import useQueryListBatchInfo from './useQueryListBatchInfo';
 import { BasketEcocredit } from '../types/ledger';
 import { BasketOverviewProps } from '../components/organisms';
+import useQueryLedger from './useQueryLedger';
+import { queryBasket } from '../lib/ecocredit';
 
 type BasketDetails = {
   overview: BasketOverviewProps;
@@ -18,6 +20,16 @@ type BasketDetails = {
 
 const useBasketDetails = (basketDenom?: string): BasketDetails => {
   const basket = useQueryBasket(basketDenom);
+
+  // Alternative, using directly the ledger query hook `useQueryLedger(...)`
+  // const basket = useQueryLedger({
+  //   queryType: 'basket',
+  //   queryCallback: queryBasket,
+  //   queryParams: { basketDenom },
+  // });
+  // // eslint-disable-next-line no-console
+  // console.log('*** basket', basket);
+
   const basketBalances = useQueryBasketBalances(basketDenom);
   const basketMetadata = useQueryDenomMetadata(basketDenom);
 
